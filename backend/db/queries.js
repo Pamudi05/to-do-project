@@ -26,10 +26,15 @@ export const findById = async (id)=>{
 
 export const create = async (title, description)=>{
     const QUERY = `INSERT INTO tasks (title, description) VALUES (?,?)`;
+    const SELECT_QUERY = `SELECT * FROM tasks WHERE id = ?`;
     try {
         const task = await pool.getConnection();
-        const result = await task.query(QUERY,[title, description]);
-        return result[0];
+        const [result] = await task.query(QUERY,[title, description]);
+        const [newTask] = await task.query(SELECT_QUERY, [result.insertId]);
+        
+        task.release();
+
+        return newTask[0];
     } catch (error) {
         console.log("Error ocuur when create", error);
         throw error;
